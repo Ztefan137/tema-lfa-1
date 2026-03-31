@@ -24,16 +24,22 @@ class l_nfa:
     def print_alphabet(self):
         print(self.alphabet)
     def apply_transition(self,state,letter):
+        if letter == "lambda":
+            self.visited[state]=1
         if state in self.transitions:
             for transition in self.transitions[state]:
                 if letter == transition[1]:
                     self.state_queue.put(transition[0])
                     if letter == "lambda":
-                        self.apply_transition(transition[0],"lambda")
+                        if self.visited[transition[0]] == 0:
+                            self.apply_transition(transition[0],"lambda")
     def process_word(self,word,output_file):
+        self.visited={}
         while not self.state_queue.empty():
             self.state_queue.get()
         self.state_queue.put(self.initial_state)
+        for i in range(self.N):
+            self.visited[self.states[i]]=0   
         self.apply_transition(self.initial_state,"lambda")
         for letter in word:
             states_count=self.state_queue.qsize()
@@ -48,6 +54,8 @@ class l_nfa:
             for _ in range(states_count):
                 state=self.state_queue.get()
                 self.state_queue.put(state)
+                for i in range(self.N):
+                    self.visited[self.states[i]]=0     
                 self.apply_transition(state,"lambda")
         while not self.state_queue.empty():
             if self.state_queue.get() in self.final_states:
@@ -59,6 +67,7 @@ class l_nfa:
         self.state_queue=Queue()
         for word in self.words:
             self.process_word(word,fout)
+
 
 l_nfa=l_nfa()
 l_nfa.read_data("./date_lnfa.txt")
